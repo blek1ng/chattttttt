@@ -35,7 +35,7 @@
   <button onclick="sendMessage()">Enviar</button>
 
   <script>
-    const socket = new WebSocket(`ws://${location.host}`);
+  const socket = new WebSocket("wss://chattttttt-alnz.onrender.com");
     const chat = document.getElementById("chat");
 
     socket.onmessage = function (event) {
