@@ -28,14 +28,14 @@ const wss = new WebSocket.Server({ server });
 
 wss.on('connection', ws => {
   ws.on('message', msg => {
-    // Enviar a mensagem para todos os clientes conectados, incluindo o remetente
     wss.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN) {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(msg.toString());
       }
     });
   });
 });
+
 
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {

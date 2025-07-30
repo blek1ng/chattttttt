@@ -15,14 +15,44 @@
       height: 300px;
       overflow-y: auto;
       padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .msg {
+      max-width: 60%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      word-wrap: break-word;
+      box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+    }
+
+    .enviada {
+      background-color: #daf1ff;
+      color: #000;
+      align-self: flex-end;
+      border-bottom-right-radius: 0;
+    }
+
+    .recebida {
+      background-color: #f1f0f0;
+      color: #000;
+      align-self: flex-start;
+      border-bottom-left-radius: 0;
     }
 
     input {
       width: 80%;
+      padding: 8px;
+      font-size: 16px;
     }
 
     button {
       width: 18%;
+      padding: 8px;
+      font-size: 16px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -34,63 +64,54 @@
   <button onclick="sendMessage()">Enviar</button>
 
   <script>
-    const socket = new WebSocket("wss://chattttttt-alnz.onrender.com");
+    const socket = new WebSocket("ws://localhost:10000"); // ou sua URL WSS no Render
     const chat = document.getElementById("chat");
     const input = document.getElementById("msg");
 
-    // Função para carregar mensagens do localStorage no carregamento da página
+    // Salvar e carregar mensagens no localStorage
     function carregarMensagens() {
       const mensagens = JSON.parse(localStorage.getItem("chatMensagens") || "[]");
       mensagens.forEach(({ texto, tipo }) => {
-        const p = document.createElement("p");
-        p.textContent = texto;
-        p.style.color = tipo === "recebida" ? "blue" : "red";
-        chat.appendChild(p);
+        adicionarMensagemNaTela(texto, tipo);
       });
       chat.scrollTop = chat.scrollHeight;
     }
 
-    // Função para salvar mensagem no localStorage
     function salvarMensagem(texto, tipo) {
       const mensagens = JSON.parse(localStorage.getItem("chatMensagens") || "[]");
       mensagens.push({ texto, tipo });
       localStorage.setItem("chatMensagens", JSON.stringify(mensagens));
     }
 
-    socket.onmessage = function (event) {
-      salvarMensagem(event.data, "recebida");
-
+    function adicionarMensagemNaTela(texto, tipo) {
       const p = document.createElement("p");
-      p.textContent = event.data;
-      p.style.color = "red";
+      p.classList.add("msg");
+      p.classList.add(tipo); // 'enviada' ou 'recebida'
+      p.textContent = texto;
       chat.appendChild(p);
       chat.scrollTop = chat.scrollHeight;
+    }
+
+    socket.onmessage = function (event) {
+      salvarMensagem(event.data, "recebida");
+      adicionarMensagemNaTela(event.data, "recebida");
     };
 
     function sendMessage() {
       const mensagem = input.value.trim();
       if (mensagem !== "") {
-
+        socket.send(mensagem);
         salvarMensagem(mensagem, "enviada");
-
-        const p = document.createElement("p");
-        p.textContent = mensagem;
-        p.style.color = "blue";
-        chat.appendChild(p);
-        chat.scrollTop = chat.scrollHeight;
-
+        adicionarMensagemNaTela(mensagem, "enviada");
         input.value = "";
       }
     }
 
-    // Carregar mensagens armazenadas quando abrir a página
-    //window.onload = carregarMensagens;
+    window.onload = carregarMensagens;
 
-    // Opcional: enviar mensagem com Enter
-    input.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        sendMessage();
-      }
+    // Enviar com Enter
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") sendMessage();
     });
   </script>
 </body>
