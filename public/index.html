@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
   <title>Sala de Bate-Papo</title>
   <style>
 
@@ -12,14 +13,19 @@
 </head>
 
 <body>
-  <div class="all">
-    <h2>Sala de Bate-Papo</h2>
-    <div class="conteiner">
-      <div id="chat"></div>
-      <div class="envio">
-        <input type="text" id="msg" placeholder="Digite sua mensagem" />
-        <button onclick="sendMessage()">Enviar</button>
-      </div>
+  <div class="titulo">
+  <h2 id="h2">
+    <i class="fa-solid fa-circle-user"></i>
+    usuario
+  </h2>
+  </div>
+  <div class="conteiner">
+    <div id="chat"></div>
+    <div class="envio">
+      <input type="text" id="msg" placeholder="Digite sua mensagem" />
+      <button onclick="sendMessage()">
+        <i id="btn-enviar" class="fa-solid fa-paper-plane"></i>
+      </button>
     </div>
   </div>
 
