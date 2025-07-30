@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Sala de Bate-Papo</title>
   <style>
     body {
@@ -29,30 +29,69 @@
 
 <body>
   <h2>Sala de Bate-Papo</h2>
-  <div id="chat">
-  </div>
+  <div id="chat"></div>
   <input type="text" id="msg" placeholder="Digite sua mensagem" />
   <button onclick="sendMessage()">Enviar</button>
 
   <script>
-  const socket = new WebSocket("wss://chattttttt-alnz.onrender.com");
+    const socket = new WebSocket("wss://chattttttt-alnz.onrender.com");
     const chat = document.getElementById("chat");
+    const input = document.getElementById("msg");
+
+    // Função para carregar mensagens do localStorage no carregamento da página
+    function carregarMensagens() {
+      const mensagens = JSON.parse(localStorage.getItem("chatMensagens") || "[]");
+      mensagens.forEach(({ texto, tipo }) => {
+        const p = document.createElement("p");
+        p.textContent = texto;
+        p.style.color = tipo === "recebida" ? "blue" : "red";
+        chat.appendChild(p);
+      });
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Função para salvar mensagem no localStorage
+    function salvarMensagem(texto, tipo) {
+      const mensagens = JSON.parse(localStorage.getItem("chatMensagens") || "[]");
+      mensagens.push({ texto, tipo });
+      localStorage.setItem("chatMensagens", JSON.stringify(mensagens));
+    }
 
     socket.onmessage = function (event) {
+      salvarMensagem(event.data, "recebida");
+
       const p = document.createElement("p");
       p.textContent = event.data;
-      p.style.color = 'red'
+      p.style.color = "red";
       chat.appendChild(p);
+      chat.scrollTop = chat.scrollHeight;
     };
 
     function sendMessage() {
-      const input = document.getElementById("msg");
-      if (input.value.trim() !== "") {
-        socket.send(input.value);
+      const mensagem = input.value.trim();
+      if (mensagem !== "") {
+
+        salvarMensagem(mensagem, "enviada");
+
+        const p = document.createElement("p");
+        p.textContent = mensagem;
+        p.style.color = "blue";
+        chat.appendChild(p);
+        chat.scrollTop = chat.scrollHeight;
+
         input.value = "";
       }
     }
 
+    // Carregar mensagens armazenadas quando abrir a página
+    //window.onload = carregarMensagens;
+
+    // Opcional: enviar mensagem com Enter
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
   </script>
 </body>
 
