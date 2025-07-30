@@ -64,9 +64,16 @@
   <button onclick="sendMessage()">Enviar</button>
 
   <script>
-    const socket = new WebSocket("ws://localhost:10000"); // ou sua URL WSS no Render
+    const socket = new WebSocket("ws://localhost:10000"); // ou URL WSS no Render
     const chat = document.getElementById("chat");
     const input = document.getElementById("msg");
+
+    // Criar ou recuperar um ID único para o usuário (permanece o mesmo no localStorage)
+    let userId = localStorage.getItem("userId");
+    if (!userId) {
+      userId = Math.random().toString(36).substring(2, 10);
+      localStorage.setItem("userId", userId);
+    }
 
     // Salvar e carregar mensagens no localStorage
     function carregarMensagens() {
@@ -93,23 +100,30 @@
     }
 
     socket.onmessage = function (event) {
-      salvarMensagem(event.data, "recebida");
-      adicionarMensagemNaTela(event.data, "recebida");
+      try {
+        const data = JSON.parse(event.data);
+        const tipo = data.userId === userId ? "enviada" : "recebida";
+        salvarMensagem(data.mensagem, tipo);
+        adicionarMensagemNaTela(data.mensagem, tipo);
+      } catch (e) {
+        // Caso não seja JSON válido, mostrar mensagem normal recebida
+        salvarMensagem(event.data, "recebida");
+        adicionarMensagemNaTela(event.data, "recebida");
+      }
     };
 
     function sendMessage() {
       const mensagem = input.value.trim();
       if (mensagem !== "") {
-        socket.send(mensagem);
-        salvarMensagem(mensagem, "enviada");
-        adicionarMensagemNaTela(mensagem, "enviada");
+        // Envia um JSON com userId e mensagem
+        const data = JSON.stringify({ userId, mensagem });
+        socket.send(data);
         input.value = "";
       }
     }
 
     window.onload = carregarMensagens;
 
-    // Enviar com Enter
     input.addEventListener("keydown", e => {
       if (e.key === "Enter") sendMessage();
     });

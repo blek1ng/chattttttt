@@ -29,12 +29,13 @@ const wss = new WebSocket.Server({ server });
 wss.on('connection', ws => {
   ws.on('message', msg => {
     wss.clients.forEach(client => {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
+      if (client.readyState === WebSocket.OPEN) {
         client.send(msg.toString());
       }
     });
   });
 });
+
 
 
 const PORT = process.env.PORT || 10000;
