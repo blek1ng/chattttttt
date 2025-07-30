@@ -7,17 +7,27 @@
   <link rel="stylesheet" href="style.css">
   <title>Sala de Bate-Papo</title>
   <style>
-   
+
   </style>
 </head>
 
 <body>
-  <h2>Sala de Bate-Papo</h2>
-  <div id="chat"></div>
-  <input type="text" id="msg" placeholder="Digite sua mensagem" />
-  <button onclick="sendMessage()">Enviar</button>
+  <div class="all">
+    <h2>Sala de Bate-Papo</h2>
+    <div class="conteiner">
+      <div id="chat"></div>
+      <div class="envio">
+        <input type="text" id="msg" placeholder="Digite sua mensagem" />
+        <button onclick="sendMessage()">Enviar</button>
+      </div>
+    </div>
+  </div>
+
 
   <script>
+
+
+
     const socket = new WebSocket("wss://chattttttt-alnz.onrender.com"); // ou URL WSS no Render
     const chat = document.getElementById("chat");
     const input = document.getElementById("msg");

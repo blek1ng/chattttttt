@@ -1,11 +1,20 @@
  body {
       font-family: sans-serif;
-      padding: 20px;
+      margin-top: 0;
+      margin: 10px;
+    }
+
+    .all {
+      height: 80vh;
+    }
+
+    .conteiner {
+      height: 100%;
     }
 
     #chat {
       border: 1px solid #ccc;
-      height: 300px;
+      height: 100%;
       overflow-y: auto;
       padding: 10px;
       display: flex;
@@ -13,12 +22,16 @@
       gap: 8px;
     }
 
+    .envio {
+      display: flex;
+    }
+
     .msg {
       max-width: 60%;
       padding: 8px 12px;
       border-radius: 12px;
       word-wrap: break-word;
-      box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.116);
     }
 
     .enviada {
