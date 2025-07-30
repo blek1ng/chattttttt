@@ -8,14 +8,14 @@
  }
 
  .conteiner {
-   height: 80%;
+   height: 85%;
    width: 100%;
  }
 
  #chat {
    border: 1px solid #ccc;
-   height: 100%;
    overflow-y: auto;
+   height: 100%;
    padding: 10px;
    display: flex;
    flex-direction: column;
