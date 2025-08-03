@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,31 +9,23 @@
 </head>
 
 <body>
-  <div class="conteiner">
-    <div class="titulo">
-      <h2 id="h2">
-        <i class="fa-solid fa-circle-user"></i>
-        usuario
-      </h2>
+  <div class="video">
+    <div id="player"></div>
+    <div class="envio"> 
+    <input id="ytUrl" type="text" placeholder="Cole o link do YouTube"/>
+    <button onclick="loadVideo()" style="width: 20%; height: 40px;">Carregar</button>
     </div>
+  </div>
 
-    <div id="chat"></div>
-
-    <div class="envio">
+  <div id="chat"></div>
+  <div class="envio">
       <input type="text" id="msg" placeholder="Digite sua mensagem" />
       <button onclick="sendMessage()">
         <i id="btn-enviar" class="fa-solid fa-paper-plane"></i>
       </button>
-    </div>
   </div>
 
-  <div class="video">
-    <input id="ytUrl" type="text" placeholder="Cole o link do YouTube" />
-    <button onclick="loadVideo()">Carregar</button>
-    <div id="player"></div>
-  </div>
 
-  <script src="https://www.youtube.com/iframe_api"></script>
 
   <script>
     const socket = new WebSocket("wss://chattttttt-alnz.onrender.com");
@@ -120,8 +111,6 @@
     // Torna a função global para o YouTube chamar corretamente
     window.onYouTubeIframeAPIReady = function () {
       player = new YT.Player('player', {
-        height: '315',
-        width: '560',
         videoId: '',
         events: {
           'onStateChange': onPlayerStateChange
@@ -162,13 +151,20 @@
     }
 
     // Enviar tempo atual do vídeo a cada 5 segundos
+    let lastSentTime = 0;
+
     setInterval(() => {
       if (player && player.getPlayerState() === YT.PlayerState.PLAYING) {
         const currentTime = player.getCurrentTime();
-        socket.send(JSON.stringify({ type: 'video', action: 'seek', time: currentTime }));
+        if (Math.abs(currentTime - lastSentTime) > 1) { // só envia se dif > 1s
+          socket.send(JSON.stringify({ type: 'video', action: 'seek', time: currentTime }));
+          lastSentTime = currentTime;
+        }
       }
-    }, 5000);
+    }, 60000);
+
   </script>
+  <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 
 </html>

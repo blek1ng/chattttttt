@@ -1,31 +1,24 @@
  body {
    font-family: sans-serif;
-   background-image: url(como-adicionar-fundos-divertidos-e-personalizados-aos-seus-chats-do-whatsapp-3.png);
+   background: black;
    background-repeat: no-repeat;
    background-size: cover;
    height: 100vh;
-   margin: 0;
+   margin: 2dvw;
+   margin-bottom: 0 !important;
  }
 
- .conteiner {
-   height: 100%;
-   width: 100%;
- }
 
  #chat {
-   border: 1px solid #ccc;
    overflow-y: auto;
-   height: 80%;
-   padding: 10px;
+   height: 40% !important;
    display: flex;
    flex-direction: column;
    gap: 8px;
    margin-bottom: 10px;
-   border: none;
  }
 
  .envio {
-   padding: 10px;
    display: flex;
    gap: 8px;
  }
@@ -103,4 +96,33 @@
    background: linear-gradient(0deg,
        rgb(0, 132, 255), rgb(0, 38, 255));
    box-shadow: 0 0 20px rgba(0, 0, 0, 0.445);
+ }
+
+
+ #player {
+   width: 100%;
+   /* largura desejada */
+   height: 300px;
+   /* altura desejada, mantendo proporção 16:9 */
+   position: relative;
+ }
+
+ /* iframe dentro do player para ocupar todo espaço */
+ #player iframe {
+   width: 100% !important;
+   height: 100% !important;
+   position: absolute;
+   top: 0;
+   left: 0;
+   border: none;
+ }
+
+
+ #ytUrl {
+   width: 100% !important;
+   margin-bottom: 20px;
+ }
+
+ input {
+   color: #035dd3;
  }
