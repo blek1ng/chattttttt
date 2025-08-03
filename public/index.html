@@ -7,15 +7,10 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
   <title>Sala de Bate-Papo</title>
-  <style>
-
-  </style>
 </head>
 
 <body>
-
   <div class="conteiner">
-
     <div class="titulo">
       <h2 id="h2">
         <i class="fa-solid fa-circle-user"></i>
@@ -33,81 +28,28 @@
     </div>
   </div>
 
-  <button id="btn-yt">yt</button>
-  <input id="inputYT" type="text">
-  <iframe id="iframeYT" width="560" height="315" title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <div class="video">
+    <input id="ytUrl" type="text" placeholder="Cole o link do YouTube" />
+    <button onclick="loadVideo()">Carregar</button>
+    <div id="player"></div>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
 
   <script>
-    const btnYT = document.getElementById('btn-yt')
-    const inputYT = document.getElementById('inputYT')
-    const iframeYT = document.getElementById('iframeYT')
-
-    let valor = ''
-
-    inputYT.addEventListener('input', () => {
-      valor = inputYT.value
-    })
-
-    btnYT.addEventListener('click', () => {
-      iframeYT.setAttribute('src', `${valor}`)
-      inputYT.value = ''
-    })
-
-
-
-
-    // Abrir link da Netflix em nova aba
-
-    /*   window.open("https://www.youtube.com/", "_blank"); */
-    /* const btnYT = document.getElementById('btn-yt')
-    btnYT.addEventListener('click', () => {
-      window.open
-    })
-     */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    const socket = new WebSocket("wss://chattttttt-alnz.onrender.com"); // ou URL WSS no Render
+    const socket = new WebSocket("wss://chattttttt-alnz.onrender.com");
     const chat = document.getElementById("chat");
     const input = document.getElementById("msg");
+    let player;
 
-    // Criar ou recuperar um ID único para o usuário (permanece o mesmo no localStorage)
+    // ID único do usuário
     let userId = localStorage.getItem("userId");
     if (!userId) {
       userId = Math.random().toString(36).substring(2, 10);
       localStorage.setItem("userId", userId);
     }
 
-    // Salvar e carregar mensagens no localStorage
+    // Salvar e carregar mensagens do chat
     function carregarMensagens() {
       const mensagens = JSON.parse(localStorage.getItem("chatMensagens") || "[]");
       mensagens.forEach(({ texto, tipo }) => {
@@ -124,22 +66,35 @@
 
     function adicionarMensagemNaTela(texto, tipo) {
       const p = document.createElement("p");
-      p.classList.add("msg");
-      p.classList.add(tipo); // 'enviada' ou 'recebida'
+      p.classList.add("msg", tipo); // 'enviada' ou 'recebida'
       p.textContent = texto;
       chat.appendChild(p);
       chat.scrollTop = chat.scrollHeight;
     }
 
+    // Receber mensagens (chat ou vídeo)
     socket.onmessage = function (event) {
       try {
         const data = JSON.parse(event.data);
-        const tipo = data.userId === userId ? "enviada" : "recebida";
-        salvarMensagem(data.mensagem, tipo);
-        adicionarMensagemNaTela(data.mensagem, tipo);
+        if (data.type === "chat") {
+          const tipo = data.userId === userId ? "enviada" : "recebida";
+          salvarMensagem(data.mensagem, tipo);
+          adicionarMensagemNaTela(data.mensagem, tipo);
+        } else if (data.type === "video") {
+          if (!player) return;
+          if (data.action === "load") {
+            const id = extractId(data.url);
+            player.loadVideoById(id);
+          } else if (data.action === "play") {
+            player.playVideo();
+          } else if (data.action === "pause") {
+            player.pauseVideo();
+          } else if (data.action === "seek") {
+            player.seekTo(data.time, true);
+          }
+        }
       } catch (e) {
-        // Caso não seja JSON válido, mostrar mensagem normal recebida
-        salvarMensagem(event.data, "recebida");
+        // Se não for JSON válido
         adicionarMensagemNaTela(event.data, "recebida");
       }
     };
@@ -147,18 +102,72 @@
     function sendMessage() {
       const mensagem = input.value.trim();
       if (mensagem !== "") {
-        // Envia um JSON com userId e mensagem
-        const data = JSON.stringify({ userId, mensagem });
-        socket.send(data);
+        socket.send(JSON.stringify({
+          type: "chat",
+          userId,
+          mensagem
+        }));
         input.value = "";
       }
     }
 
-    window.onload = carregarMensagens;
-
     input.addEventListener("keydown", e => {
       if (e.key === "Enter") sendMessage();
     });
+
+    window.onload = carregarMensagens;
+
+    // Torna a função global para o YouTube chamar corretamente
+    window.onYouTubeIframeAPIReady = function () {
+      player = new YT.Player('player', {
+        height: '315',
+        width: '560',
+        videoId: '',
+        events: {
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    };
+
+    function extractId(url) {
+      try {
+        const urlObj = new URL(url);
+        if (urlObj.hostname === 'youtu.be') {
+          return urlObj.pathname.slice(1);
+        } else if (urlObj.hostname.includes('youtube.com')) {
+          return urlObj.searchParams.get('v');
+        }
+      } catch {
+        return null;
+      }
+      return null;
+    }
+
+    function loadVideo() {
+      const url = document.getElementById('ytUrl').value;
+      const id = extractId(url);
+      if (id && player) {
+        player.loadVideoById(id);
+        socket.send(JSON.stringify({ type: 'video', action: 'load', url }));
+      }
+    }
+
+    function onPlayerStateChange(event) {
+      if (!player) return;
+      if (event.data === YT.PlayerState.PLAYING) {
+        socket.send(JSON.stringify({ type: 'video', action: 'play' }));
+      } else if (event.data === YT.PlayerState.PAUSED) {
+        socket.send(JSON.stringify({ type: 'video', action: 'pause' }));
+      }
+    }
+
+    // Enviar tempo atual do vídeo a cada 5 segundos
+    setInterval(() => {
+      if (player && player.getPlayerState() === YT.PlayerState.PLAYING) {
+        const currentTime = player.getCurrentTime();
+        socket.send(JSON.stringify({ type: 'video', action: 'seek', time: currentTime }));
+      }
+    }, 5000);
   </script>
 </body>
 
