@@ -16,28 +16,83 @@
 
   <div class="conteiner">
 
-  <div class="titulo">
-    <h2 id="h2">
-      <i class="fa-solid fa-circle-user"></i>
-      usuario
-    </h2>
+    <div class="titulo">
+      <h2 id="h2">
+        <i class="fa-solid fa-circle-user"></i>
+        usuario
+      </h2>
+    </div>
+
+    <div id="chat"></div>
+
+    <div class="envio">
+      <input type="text" id="msg" placeholder="Digite sua mensagem" />
+      <button onclick="sendMessage()">
+        <i id="btn-enviar" class="fa-solid fa-paper-plane"></i>
+      </button>
+    </div>
   </div>
 
-<div id="chat"></div>
-
-  <div class="envio">
-    <input type="text" id="msg" placeholder="Digite sua mensagem" />
-    <button onclick="sendMessage()">
-      <i id="btn-enviar" class="fa-solid fa-paper-plane"></i>
-    </button>
-  </div>
-
-  </div>
-
-
-
+  <button id="btn-yt">yt</button>
+  <input id="inputYT" type="text">
+  <iframe id="iframeYT" width="560" height="315" title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
   <script>
+    const btnYT = document.getElementById('btn-yt')
+    const inputYT = document.getElementById('inputYT')
+    const iframeYT = document.getElementById('iframeYT')
+
+    let valor = ''
+
+    inputYT.addEventListener('input', () => {
+      valor = inputYT.value
+    })
+
+    btnYT.addEventListener('click', () => {
+      iframeYT.setAttribute('src', `${valor}`)
+      inputYT.value = ''
+    })
+
+
+
+
+    // Abrir link da Netflix em nova aba
+
+    /*   window.open("https://www.youtube.com/", "_blank"); */
+    /* const btnYT = document.getElementById('btn-yt')
+    btnYT.addEventListener('click', () => {
+      window.open
+    })
+     */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
