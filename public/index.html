@@ -1,52 +1,90 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
-  <title>Sala de Bate-Papo</title>
+  <title>Sala de Vídeo e Bate-Papo</title>
+  <style>
+    #chat {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .msg {
+      margin: 5px 0;
+    }
+
+    .enviada {
+      color: blue;
+      text-align: right;
+    }
+
+    .recebida {
+      color: green;
+      text-align: left;
+    }
+
+    .video {
+      max-width: 640px;
+      margin: 0 auto 20px;
+    }
+  </style>
 </head>
 
 <body>
+
   <div class="video">
-    <div id="player"></div>
-    <div class="envio"> 
-    <input id="ytUrl" type="text" placeholder="Cole o link do YouTube"/>
-    <button onclick="loadVideo()" style="width: 20%; height: 40px;">Carregar</button>
+    <div id="videoContainer" style="width: 640px; height: 360px; margin: 0 auto;">
+      <iframe id="iframe" frameborder="0" width="640" height="360" scrolling="no" allowfullscreen webkitallowfullscreen
+        mozallowfullscreen allowtransparency style="display:block;max-width:100%;margin:0 auto 10px">
+      </iframe>
+    </div>
+    <div class="envio">
+      <input id="videoUrl" type="text" placeholder="Cole o link embed do vídeo (iframe)" style="width: 70%;">
+      <button id="btn-carregar" onclick="loadCustomVideo()">Carregar</button>
     </div>
   </div>
 
   <div id="chat"></div>
   <div class="envio">
-      <input type="text" id="msg" placeholder="Digite sua mensagem" />
-      <button onclick="sendMessage()">
-        <i id="btn-enviar" class="fa-solid fa-paper-plane"></i>
-      </button>
+    <input type="text" id="msg" placeholder="Digite sua mensagem" style="width: 80%;" />
+    <button onclick="sendMessage()">Enviar</button>
   </div>
-
-
 
   <script>
     const socket = new WebSocket("wss://chattttttt-alnz.onrender.com");
     const chat = document.getElementById("chat");
     const input = document.getElementById("msg");
-    let player;
+    const videoContainer = document.getElementById("videoContainer");
 
-    // ID único do usuário
     let userId = localStorage.getItem("userId");
     if (!userId) {
       userId = Math.random().toString(36).substring(2, 10);
       localStorage.setItem("userId", userId);
     }
 
-    // Salvar e carregar mensagens do chat
+    let valor = ''
+    const btnCarregar = document.getElementById('btn-carregar')
+    btnCarregar.addEventListener('click', () => {
+      const inputURL = document.getElementById('videoUrl')
+      valor = inputURL.value
+      const iframe = document.getElementById('iframe')
+      iframe.setAttribute('src', `${valor}`)
+    })
+
+    function scrollChatToBottom() {
+      chat.scrollTop = chat.scrollHeight;
+    }
+
     function carregarMensagens() {
       const mensagens = JSON.parse(localStorage.getItem("chatMensagens") || "[]");
-      mensagens.forEach(({ texto, tipo }) => {
-        adicionarMensagemNaTela(texto, tipo);
-      });
-      chat.scrollTop = chat.scrollHeight;
+      mensagens.forEach(({ texto, tipo }) => adicionarMensagemNaTela(texto, tipo));
+      scrollChatToBottom();
     }
 
     function salvarMensagem(texto, tipo) {
@@ -57,13 +95,12 @@
 
     function adicionarMensagemNaTela(texto, tipo) {
       const p = document.createElement("p");
-      p.classList.add("msg", tipo); // 'enviada' ou 'recebida'
+      p.classList.add("msg", tipo);
       p.textContent = texto;
       chat.appendChild(p);
-      chat.scrollTop = chat.scrollHeight;
+      scrollChatToBottom();
     }
 
-    // Receber mensagens (chat ou vídeo)
     socket.onmessage = function (event) {
       try {
         const data = JSON.parse(event.data);
@@ -72,20 +109,12 @@
           salvarMensagem(data.mensagem, tipo);
           adicionarMensagemNaTela(data.mensagem, tipo);
         } else if (data.type === "video") {
-          if (!player) return;
           if (data.action === "load") {
-            const id = extractId(data.url);
-            player.loadVideoById(id);
-          } else if (data.action === "play") {
-            player.playVideo();
-          } else if (data.action === "pause") {
-            player.pauseVideo();
-          } else if (data.action === "seek") {
-            player.seekTo(data.time, true);
+            loadIframe(data.url);
           }
+          // Note: controles play/pause/seek não funcionam com iframe embutido
         }
-      } catch (e) {
-        // Se não for JSON válido
+      } catch {
         adicionarMensagemNaTela(event.data, "recebida");
       }
     };
@@ -93,11 +122,7 @@
     function sendMessage() {
       const mensagem = input.value.trim();
       if (mensagem !== "") {
-        socket.send(JSON.stringify({
-          type: "chat",
-          userId,
-          mensagem
-        }));
+        socket.send(JSON.stringify({ type: "chat", userId, mensagem }));
         input.value = "";
       }
     }
@@ -106,65 +131,38 @@
       if (e.key === "Enter") sendMessage();
     });
 
+    function loadIframe(url) {
+      if (!url) return;
+      videoContainer.innerHTML = ''; // limpa vídeo atual
+      const iframe = document.createElement('iframe');
+      iframe.src = url;
+      iframe.width = '640';
+      iframe.height = '360';
+      iframe.frameBorder = '0';
+      iframe.scrolling = 'no';
+      iframe.allowFullscreen = true;
+      iframe.webkitallowfullscreen = true;
+      iframe.mozallowfullscreen = true;
+      iframe.allowTransparency = true;
+      iframe.style.display = 'block';
+      iframe.style.maxWidth = '100%';
+      iframe.style.margin = '0 auto 10px';
+      videoContainer.appendChild(iframe);
+    }
+
+    function loadCustomVideo() {
+      const url = document.getElementById('videoUrl').value.trim();
+      if (!url) {
+        alert("Cole um link embed válido (iframe) do vídeo.");
+        return;
+      }
+      loadIframe(url);
+      socket.send(JSON.stringify({ type: 'video', action: 'load', url }));
+    }
+
     window.onload = carregarMensagens;
-
-    // Torna a função global para o YouTube chamar corretamente
-    window.onYouTubeIframeAPIReady = function () {
-      player = new YT.Player('player', {
-        videoId: '',
-        events: {
-          'onStateChange': onPlayerStateChange
-        }
-      });
-    };
-
-    function extractId(url) {
-      try {
-        const urlObj = new URL(url);
-        if (urlObj.hostname === 'youtu.be') {
-          return urlObj.pathname.slice(1);
-        } else if (urlObj.hostname.includes('youtube.com')) {
-          return urlObj.searchParams.get('v');
-        }
-      } catch {
-        return null;
-      }
-      return null;
-    }
-
-    function loadVideo() {
-      const url = document.getElementById('ytUrl').value;
-      const id = extractId(url);
-      if (id && player) {
-        player.loadVideoById(id);
-        socket.send(JSON.stringify({ type: 'video', action: 'load', url }));
-      }
-    }
-
-    function onPlayerStateChange(event) {
-      if (!player) return;
-      if (event.data === YT.PlayerState.PLAYING) {
-        socket.send(JSON.stringify({ type: 'video', action: 'play' }));
-      } else if (event.data === YT.PlayerState.PAUSED) {
-        socket.send(JSON.stringify({ type: 'video', action: 'pause' }));
-      }
-    }
-
-    // Enviar tempo atual do vídeo a cada 5 segundos
-    let lastSentTime = 0;
-
-    setInterval(() => {
-      if (player && player.getPlayerState() === YT.PlayerState.PLAYING) {
-        const currentTime = player.getCurrentTime();
-        if (Math.abs(currentTime - lastSentTime) > 1) { // só envia se dif > 1s
-          socket.send(JSON.stringify({ type: 'video', action: 'seek', time: currentTime }));
-          lastSentTime = currentTime;
-        }
-      }
-    }, 60000);
-
   </script>
-  <script src="https://www.youtube.com/iframe_api"></script>
+
 </body>
 
 </html>
